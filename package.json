@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "author" : "Nazarí González <soy@nazariglez.com> (www.nazariglez.com)",
   "dependencies": {
-    "express": "3.1.x",
+    "express": "4.x",
     "socket.io": ">=0.9.13",
     "sanitizer": "*"
   },

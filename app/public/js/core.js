@@ -3,7 +3,14 @@ jQuery(document).ready(function(){
 	var socket = io.connect();
 
 	var nick = false, usuarios = [], //Almacenamos todos los nombres de usuarios
-		turno = false; //Determina si es el turno del jugador.
+		turno = null; //Determina si es el turno del jugador.
+
+	$(".columna").mouseover(function() {
+		//tambien con $(this).index( "div.columna" )
+  		console.log('hola' + $(this).attr('data-celda'));
+  		//socket.emit('cambiaCelda', $(this).index("div.columna"), function(data){
+  		socket.emit('cambiaCelda',{ indexCelda : $(this).index("div.columna"), 'nick' : nick});	
+ 	});
 
 	//Al conectarse el usuario se cargan los jugadores que están jugando y el tablero.
 	socket.on('conexion', function(data){
@@ -88,12 +95,28 @@ jQuery(document).ready(function(){
 	});
 
 
-	//Identificamos cada celda del tablero
-	$('.columna').each(function(e){
+	//Al llegar un cambio de celda en rival
+	socket.on('cambiaCeldaRival', function(data){
+		console.log(data.rival + " - " + data.celda + data.listaUsuarios);
+		if(data.rival != nick && turno != null){
+			$('.columna1').each(function(e){
+				if($(this).attr('data-celda') == data.celda){
+					$(this).css("background-color", "#4188e1");
+				}
+				else{
+					$(this).css("background-color", "#4188c1");
+				}
+			});
+		}
+	});
 
+	//Identificamos cada celda del tablero principal y rival
+	$('.columna, .columna1').each(function(e){
+		if(e > 8){
+			e = e - 9;
+		}
 		$(this).attr({ 'data-celda' : parseInt(e, 10) });
-		console.log($(this).attr('data-celda'));
-
+		console.log(e + " " + $(this).attr('data-celda'));
 	});
 
 	//Al clicar una casilla
@@ -103,7 +126,7 @@ jQuery(document).ready(function(){
 
 			var celda = $(this).attr('data-celda');
 
-			socket.emit('marcarCelda', celda);
+			socket.emit('marcarCelda', celda, nick);
 
 		}
 
@@ -134,6 +157,7 @@ jQuery(document).ready(function(){
 			socket.emit('nuevoJugador', nick, function(data){
 				if( data.ok ){
 					socket.jugador = data.jugador;
+					//Se muestra el tablero del otro jugador
 				}
 			});
 		}
@@ -184,6 +208,8 @@ jQuery(document).ready(function(){
 		$('#jugadores .estado[data-jugador="' + data.jugador + '"] .nombre').html('Esperando jugador...');
 		$('#unirse').removeClass('completo');
 		$('#unirse').html('Unirse');
+		//No queremos que se siga monitorizando el cursor
+		turno = null;
 
 	});
 
@@ -199,6 +225,8 @@ jQuery(document).ready(function(){
 		if(socket.jugador){
 			delete socket.jugador;
 		}
+		//No queremos que se siga monitorizando el cursor
+		turno = null;
 
 	});
 

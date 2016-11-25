@@ -65,7 +65,6 @@ io.sockets.on('connection', function (socket) {
 
         //Recorremos todos los sockets abiertos y eliminamos el tag de jugador
         for(var i in io.sockets.sockets){
-
             if(io.sockets.sockets[i].jugador){
                 delete io.sockets.sockets[i].jugador;
             }
@@ -122,10 +121,17 @@ io.sockets.on('connection', function (socket) {
 
     });
 
+    //Cada vez que un usuario pasa el curso por encima de una celda
+    socket.on('cambiaCelda', function (data) {
+        console.log(data.nick + '-' + data.indexCelda);
+        io.sockets.emit('cambiaCeldaRival', {celda : data.indexCelda, rival: data.nick, listaUsuarios : usuarios});
+    });
+
     //Al recibir una jugada se comprueba que esa casilla del tablero está vacia y si se ha ganado o no.
-    socket.on('marcarCelda', function(data){
+    socket.on('marcarCelda', function(data, nickie){
         if(socket.jugador == turno && tablero[data] === ''){
-            tablero[data] = figura(turno);
+            console.log(nickie + ": " + data);
+            tablero[data] = figura(turno);           
             jugadas++;
 
             //Comprobamos si ha ganado con esta jugada
